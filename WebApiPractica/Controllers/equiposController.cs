@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WebApiPractica.Models;
+using webApiPractica.Models;
 using Microsoft.EntityFrameworkCore;
 
-
-namespace WebApiPractica.Controllers
+namespace webApiPractica.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -13,50 +12,64 @@ namespace WebApiPractica.Controllers
         private readonly equiposContext _equiposContexto;
 
         public equiposController(equiposContext equiposContexto)
+
         {
-            _equiposContexto = equiposContexto; ;
+            _equiposContexto = equiposContexto;
         }
+
+        //Retorna el listado de todos los equipos existentes
 
         [HttpGet]
-        [Route("GetAll")]
-
-        public IActionResult Get()
+        [Route("getbyid/{id}")]
+        public IActionResult GetById(int Id)
         {
-            List<equipos> listadoEquipo = (from e in _equiposContexto.equipos
-                                           select e).ToList();
-
-            if (listadoEquipo.Count() == 0)
-            {
-                return NotFound();
-            }
-            return Ok(listadoEquipo);
+            var equipo = (from e in _equiposContexto.equipos
+                          join m in _equiposContexto.marcas on e.marca_id equals m.id_marcas
+                          join te in _equiposContexto.tipo_Equipos on e.tipo_equipo_id equals te.id_tipo_equipo
+                          where e.id_equipos == Id
+                          select new
+                          {
+                              e.id_equipos,
+                              e.nombre,
+                              e.descripcion,
+                              e.tipo_equipo_id,
+                              tipo_descripcion = te.descripcion,
+                              e.marca_id,
+                              m.nombre_marca,
+                              descripcion_equipo = ("Marca: " + m.nombre_marca + "tipo: " + te.descripcion)
+                          }
+                            ).FirstOrDefault();
+            if (equipo == null) return NotFound();
+            return Ok(equipo);
 
         }
+
+        //Retorna los registros de una tabla filtrados por su ID
+
         [HttpGet]
         [Route("GetById/{id}")]
-
         public IActionResult Get(int id)
         {
             equipos? equipo = (from e in _equiposContexto.equipos
                                where e.id_equipos == id
                                select e).FirstOrDefault();
-
             if (equipo == null)
             {
                 return NotFound();
             }
-            return Ok(equipo);
 
+            return Ok(equipo);
         }
+
+        //Guarda nuevo registro
+
         [HttpGet]
         [Route("Find/{filtro}")]
-
-        public IActionResult FindbyDescription(String filtro)
+        public IActionResult FindyByDescription(string filtro)
         {
             equipos? equipo = (from e in _equiposContexto.equipos
                                where e.descripcion.Contains(filtro)
                                select e).FirstOrDefault();
-
             if (equipo == null)
             {
                 return NotFound();
@@ -66,10 +79,8 @@ namespace WebApiPractica.Controllers
 
         [HttpPost]
         [Route("Add")]
-
         public IActionResult GuardarEquipo([FromBody] equipos equipo)
         {
-
             try
             {
                 _equiposContexto.equipos.Add(equipo);
@@ -79,46 +90,41 @@ namespace WebApiPractica.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
-
             }
-
         }
 
         [HttpPut]
         [Route("actualizar/{id}")]
-
         public IActionResult ActualizarEquipo(int id, [FromBody] equipos equipoModificar)
         {
-            equipos? equiposActual = (from e in _equiposContexto.equipos
-                                      where e.id_equipos == id
-                                      select e).FirstOrDefault();
-            if (equiposActual == null)
+            equipos? equipoActual = (from e in _equiposContexto.equipos
+                                     where e.id_equipos == id
+                                     select e).FirstOrDefault();
+            if (equipoActual == null)
             {
-                return NotFound(id);
+                return NotFound();
             }
 
-            equiposActual.nombre = equipoModificar.nombre;
-            equiposActual.descripcion = equipoModificar.descripcion;
-            equiposActual.marca_id = equipoModificar.marca_id;
-            equiposActual.tipo_equipo_id = equipoModificar.tipo_equipo_id;
-            equiposActual.anio_compra = equipoModificar.anio_compra;
-            equiposActual.costo = equipoModificar.costo;
+            equipoActual.nombre = equipoModificar.nombre;
+            equipoActual.descripcion = equipoModificar.descripcion;
+            //equipoActual.marca_id = equipoModificar.marca_id;
+            equipoActual.tipo_equipo_id = equipoModificar.tipo_equipo_id;
+            //equipoActual.anio_compra = equipoModificar.anio_compra;
+            //equipoActual.costo = equipoModificar.costo;
 
-            _equiposContexto.Entry(equiposActual).State = EntityState.Modified;
+            _equiposContexto.Entry(equipoActual).State = EntityState.Modified;
             _equiposContexto.SaveChanges();
-            return Ok(equipoModificar);
+
+            return NotFound();
         }
 
         [HttpDelete]
         [Route("eliminar/{id}")]
-
-        public IActionResult EliminarEquipo(int id)
+        public ActionResult EliminarEquipo(int id)
         {
-
             equipos? equipo = (from e in _equiposContexto.equipos
                                where e.id_equipos == id
                                select e).FirstOrDefault();
-
             if (equipo == null)
                 return NotFound();
 
@@ -128,6 +134,5 @@ namespace WebApiPractica.Controllers
 
             return Ok(equipo);
         }
-
     }
 }

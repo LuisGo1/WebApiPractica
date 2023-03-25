@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.SqlServer;
-namespace WebApiPractica.Models
+
+namespace webApiPractica.Models
 {
     public class equiposContext : DbContext
     {
@@ -8,7 +9,17 @@ namespace WebApiPractica.Models
         {
 
         }
+
         public DbSet<equipos> equipos { get; set; }
-        
+        public DbSet<carreras> carreras { get; set; }
+        public DbSet<estados_equipos> estados_Equipos { get; set; }
+        public DbSet<estados_reserva> estados_Reservas { get; set; }
+        public DbSet<facultades> facultades { get; set; }
+        public DbSet<marcas> marcas { get; set; }
+        public DbSet<reservas> reservas { get; set; }
+        public DbSet<tipo_equipo> tipo_Equipos { get; set; }
+        public DbSet<usuarios> usuarios { get; set; }
+
     }
+
 }
